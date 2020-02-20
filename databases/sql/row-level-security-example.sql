@@ -1,4 +1,4 @@
-/* Rules:
+﻿/* Rules:
 i.e. in the database an RLS rule is set that
 
 1. total number of rows is less than 10 return null
@@ -58,23 +58,22 @@ GO
 CREATE SCHEMA Mock_EmpSecurity;  
 GO
 
-ALTER FUNCTION Mock_EmpSecurity.fn_securitypredicate(@Manager as sysname, @Gender AS char(1))  
+CREATE FUNCTION Mock_EmpSecurity.fn_securitypredicate(@Manager as sysname, @Gender AS char(1))  
     RETURNS TABLE  
     WITH SCHEMABINDING  
 AS RETURN (
     SELECT 1 AS fn_securitypredicate_result
-    FROM dbo.Mock_Emps
     WHERE (USER_NAME() = @Manager
            AND @Gender IS NOT NULL
            AND (SELECT 1
                 FROM dbo.Mock_Emps
                 WHERE USER_NAME() = Manager
-                  AND @Gender = Gender
+                   AND @Gender = Gender
+                   AND @Manager = Manager
                 GROUP BY Gender
                 HAVING count(*) >= 4) = 1
           )
         OR USER_NAME() = 'HR'
-    HAVING COUNT(*) >= 10
 ); 
 GO
 
@@ -93,6 +92,7 @@ REVERT;
 
 EXECUTE AS USER = 'Manager2';  
 SELECT * FROM Mock_Emps;
+SELECT * FROM Mock_Emps where Gender = 'M';
 REVERT;  
 
 EXECUTE AS USER = 'HR';  
